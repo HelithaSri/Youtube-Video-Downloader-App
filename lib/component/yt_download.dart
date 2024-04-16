@@ -6,6 +6,7 @@ class DownloadWidget extends StatefulWidget {
     super.key,
     required this.title,
     required this.url,
+    this.videoId = "1",
     this.img =
         "https://www.stehle-int.com/EN/US/media/PIC_IMG_ALG_youtube-default-thumbnail_IN.png",
   });
@@ -13,6 +14,7 @@ class DownloadWidget extends StatefulWidget {
   final String title;
   final String url;
   final String img;
+  final String videoId;
 
   @override
   State<DownloadWidget> createState() => _DownloadWidgetState();

@@ -1,8 +1,10 @@
+import 'dart:collection';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:yt_download_app/component/nav_bar.dart';
 import 'package:yt_download_app/component/yt_download.dart';
+import 'package:yt_download_app/model/info.dart';
 import 'package:yt_download_app/model/photo.dart';
 import 'package:yt_download_app/screen/download_screen.dart';
 import 'package:yt_download_app/service/api_service.dart';
@@ -16,6 +18,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _urlController = TextEditingController();
+
+  bool _isLoading = false;
 
   final List<DownloadWidget> downloadItems = [
     // const DownloadWidget(
@@ -91,6 +95,10 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 customInputField(),
                 Visibility(
+                  visible: _isLoading,
+                  child: const CircularProgressIndicator(),
+                ),
+                Visibility(
                   visible: downloadItems.isNotEmpty,
                   child: fetchedDataViewer(),
                 ),
@@ -121,11 +129,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            downloadItems.length > 1
-                ? headerDetails(downloadItems.length)
-                : const SizedBox(
-                    height: 0.0,
-                  ),
+            Visibility(
+              visible: downloadItems.length > 1,
+              child: headerDetails(downloadItems.length),
+            ),
             // headerDetails(downloadItems.length),
             Container(
               height: downloadItems.length > 1 ? 390.0 : 175.0,
@@ -223,7 +230,9 @@ class _HomeScreenState extends State<HomeScreen> {
               _handleButtonClick();
               // downloadItems.clear();
               // downloadItems.addAll(downloadItems2);
-              setState(() {});
+              setState(() {
+                _isLoading = true;
+              });
             },
           ),
         ),
@@ -244,7 +253,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (url.isEmpty) {
       log("Please enter a YouTube link");
       downloadItems.clear();
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please enter a YouTube link'),
         behavior: SnackBarBehavior.floating,
@@ -255,7 +266,24 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    if (isYoutubePlaylist(url)) {
+    downloadItems.clear();
+    List<Info> video = await ApiService.fetchInfo({
+      'url': url,
+    });
+    setState(() {
+      downloadItems.addAll(video
+          .map((e) => DownloadWidget(
+                title: e.title,
+                url: e.sourceUrl,
+                img: e.thumbnailUrl,
+                videoId: e.videoId,
+              ))
+          .toList());
+      _isLoading = false;
+    });
+    return;
+
+    /*if (isYoutubePlaylist(url)) {
       downloadItems.clear();
       List<Photo> video = await ApiService.playlist();
       setState(() {
@@ -274,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
               DownloadWidget(title: e.title, url: e.url, img: e.thumbnailUrl))
           .toList());
     });
-    return;
+    return;*/
   }
 
   bool isYoutubePlaylist(String url) {
