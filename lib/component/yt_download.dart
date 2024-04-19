@@ -7,6 +7,10 @@ class DownloadWidget extends StatefulWidget {
     required this.title,
     required this.url,
     this.videoId = "1",
+    required this.progress,
+    this.loading = false,
+    required this.onPressed,
+    // required this.setLoadingState,
     this.img =
         "https://www.stehle-int.com/EN/US/media/PIC_IMG_ALG_youtube-default-thumbnail_IN.png",
   });
@@ -15,6 +19,10 @@ class DownloadWidget extends StatefulWidget {
   final String url;
   final String img;
   final String videoId;
+  final int progress;
+  final bool loading;
+  final VoidCallback onPressed;
+  // final Function(bool) setLoadingState;
 
   @override
   State<DownloadWidget> createState() => _DownloadWidgetState();
@@ -121,11 +129,36 @@ class _DownloadWidgetState extends State<DownloadWidget> {
             ),
           ),
           Expanded(
-            // flex: 1,
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.downloading),
-              color: Colors.white,
+            child: SizedBox(
+              height: 44,
+              child: Visibility(
+                visible: !widget.loading, // Show the button if not loading
+                replacement: Visibility(
+                  replacement: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.done),
+                    color: Colors.white,
+                  ),
+                  visible: widget.progress <
+                      100, // Show progress indicator if progress is less than 100
+                  child: Transform.scale(
+                    scale: 0.6,
+                    child: CircularProgressIndicator(
+                      value: widget.progress / 100,
+                    ),
+                  ),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    // Update loading state using callback function
+                    // widget.setLoadingState(true);
+                    // Call the onPressed callback
+                    widget.onPressed();
+                  },
+                  icon: const Icon(Icons.downloading),
+                  color: Colors.white,
+                ),
+              ),
             ),
           )
         ],

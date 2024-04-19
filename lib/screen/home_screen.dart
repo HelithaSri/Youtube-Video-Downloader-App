@@ -1,11 +1,10 @@
-import 'dart:collection';
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:yt_download_app/component/nav_bar.dart';
 import 'package:yt_download_app/component/yt_download.dart';
 import 'package:yt_download_app/model/info.dart';
-import 'package:yt_download_app/model/photo.dart';
 import 'package:yt_download_app/screen/download_screen.dart';
 import 'package:yt_download_app/service/api_service.dart';
 
@@ -20,65 +19,19 @@ class _HomeScreenState extends State<HomeScreen> {
   final _urlController = TextEditingController();
 
   bool _isLoading = false;
+  int _progressOfDown = 0;
+  // bool _isItemLoading = false;
 
-  final List<DownloadWidget> downloadItems = [
-    // const DownloadWidget(
-    //   title:
-    //       " Kassai (කැස්සයි) | Dinelka Muthuarachchi X Yasho X Lahiru De Costa [Official Music Video] (4K) ",
-    //   url:
-    //       "https://youtu.be/Bm_J2bNcPUQ?list=PL4sLDEuwKTh_fjsdC3hEQ60ddLdABwjOK",
-    //   img:
-    //       "https://i.ytimg.com/vi/Bm_J2bNcPUQ/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLAxocYo5yemkVrQBHa6piRSiVeTjA",
-    // ),
-    // const DownloadWidget(
-    //   title: "Poddak Saiko | පොඩ්‍ඩක් සයිකෝ | Gayya",
-    //   url:
-    //       "https://www.youtube.com/watch?v=dOsPgc4WeKU&list=PL4sLDEuwKTh97Lrp4bEfAkwrDEZynWosn&index=10&ab_channel=RDEntertainment",
-    //   img:
-    //       "https://i.ytimg.com/vi/aNw7vbbimiY/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLArCNXZ0It1I2XvhrXaj2clNbz6dg",
-    // ),
-    // const DownloadWidget(
-    //   title:
-    //       "Perambari |පෙරඹරී | Official Lyric Video| Pathum Dananjaya, Devaka Embuldeniya , Sarala Gunasekara",
-    //   url:
-    //       "https://www.youtube.com/watch?v=dOsPgc4WeKU&list=PL4sLDEuwKTh97Lrp4bEfAkwrDEZynWosn&index=10&ab_channel=RDEntertainment",
-    // ),
-    // const DownloadWidget(
-    //   title: "Mob Sick - Freaky Mobbig x Manasick [ Official Music Video ]",
-    //   url:
-    //       "https://www.youtube.com/watch?v=dOsPgc4WeKU&list=PL4sLDEuwKTh97Lrp4bEfAkwrDEZynWosn&index=10&ab_channel=RDEntertainment",
-    //   img:
-    //       "https://i.ytimg.com/vi/1WKGrVJudts/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGEcgZShiMA8=&rs=AOn4CLDGcQE7T2YJN3-SrEdGZDHZMZn1Yw",
-    // ),
-    // const DownloadWidget(
-    //   title:
-    //       " Kassai (කැස්සයි) | Dinelka Muthuarachchi X Yasho X Lahiru De Costa [Official Music Video] (4K) ",
-    //   url:
-    //       "https://youtu.be/Bm_J2bNcPUQ?list=PL4sLDEuwKTh_fjsdC3hEQ60ddLdABwjOK",
-    //   img:
-    //       "https://i.ytimg.com/vi/Bm_J2bNcPUQ/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLAxocYo5yemkVrQBHa6piRSiVeTjA",
-    // ),
-    // const DownloadWidget(
-    //   title: "Poddak Saiko | පොඩ්‍ඩක් සයිකෝ | Gayya",
-    //   url:
-    //       "https://www.youtube.com/watch?v=dOsPgc4WeKU&list=PL4sLDEuwKTh97Lrp4bEfAkwrDEZynWosn&index=10&ab_channel=RDEntertainment",
-    //   img:
-    //       "https://i.ytimg.com/vi/aNw7vbbimiY/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLArCNXZ0It1I2XvhrXaj2clNbz6dg",
-    // ),
-    // const DownloadWidget(
-    //   title:
-    //       "Perambari |පෙරඹරී | Official Lyric Video| Pathum Dananjaya, Devaka Embuldeniya , Sarala Gunasekara",
-    //   url:
-    //       "https://www.youtube.com/watch?v=dOsPgc4WeKU&list=PL4sLDEuwKTh97Lrp4bEfAkwrDEZynWosn&index=10&ab_channel=RDEntertainment",
-    // ),
-    // const DownloadWidget(
-    //   title: "Mob Sick - Freaky Mobbig x Manasick [ Official Music Video ]",
-    //   url:
-    //       "https://www.youtube.com/watch?v=dOsPgc4WeKU&list=PL4sLDEuwKTh97Lrp4bEfAkwrDEZynWosn&index=10&ab_channel=RDEntertainment",
-    //   img:
-    //       "https://i.ytimg.com/vi/1WKGrVJudts/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGEcgZShiMA8=&rs=AOn4CLDGcQE7T2YJN3-SrEdGZDHZMZn1Yw",
-    // ),
-  ];
+  final List<DownloadWidget> downloadItems = [];
+  final List<bool> _loadingStates = [];
+  final List<int> _loadingProgress = [];
+  // late List<bool> _loadingStates;
+
+  @override
+  void initState() {
+    super.initState();
+    // _loadingStates = List.filled(downloadItems.length, false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,10 +104,40 @@ class _HomeScreenState extends State<HomeScreen> {
                     return const SizedBox(height: 75.0);
                   }
                   final downloadItem = downloadItems[index]; // Access data
+                  log('progress count $_progressOfDown');
                   return DownloadWidget(
                     title: downloadItem.title,
                     url: downloadItem.url,
                     img: downloadItem.img, // Pass img if available
+                    progress: _loadingProgress[index],
+                    loading: _loadingStates[index],
+                    onPressed: () async {
+                      setState(() {
+                        _loadingStates[index] =
+                            true; // Set loading state for this widget
+                      });
+                      bool a = await ApiService().downloadVideo(
+                        {
+                          'videos': [downloadItem.videoId],
+                          'isVideo': true
+                        },
+                        (p0) {
+                          print(p0);
+                          setState(() {
+                            _loadingProgress[index] = p0;
+                          });
+                        },
+                      );
+                      // setState(() {
+                      //   _loadingStates[index] = false;
+                      // });
+                    },
+                    // setLoadingState: (bool loading) {
+                    //   // Callback function to update loading state
+                    //   setState(() {
+                    //     downloadItem.loading = loading;
+                    //   });
+                    // },
                   );
                 },
               ),
@@ -185,18 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: const ButtonStyle(
               backgroundColor: MaterialStatePropertyAll(Colors.green),
             ),
-            onPressed: () {
-              downloadItems.clear();
-              downloadItems.add(const DownloadWidget(
-                title:
-                    "Mob Sick - Freaky Mobbig x Manasick [ Official Music Video ]",
-                url:
-                    "https://www.youtube.com/watch?v=dOsPgc4WeKU&list=PL4sLDEuwKTh97Lrp4bEfAkwrDEZynWosn&index=10&ab_channel=RDEntertainment",
-                img:
-                    "https://i.ytimg.com/vi/1WKGrVJudts/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGEcgZShiMA8=&rs=AOn4CLDGcQE7T2YJN3-SrEdGZDHZMZn1Yw",
-              ));
-              setState(() {});
-            },
+            onPressed: () {},
             child: const Text(
               'Download All',
               style: TextStyle(
@@ -255,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
       downloadItems.clear();
       setState(() {
         _isLoading = false;
+        _progressOfDown = 0;
       });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please enter a YouTube link'),
@@ -267,20 +240,46 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     downloadItems.clear();
-    List<Info> video = await ApiService.fetchInfo({
-      'url': url,
-    });
-    setState(() {
-      downloadItems.addAll(video
-          .map((e) => DownloadWidget(
-                title: e.title,
-                url: e.sourceUrl,
-                img: e.thumbnailUrl,
-                videoId: e.videoId,
-              ))
-          .toList());
-      _isLoading = false;
-    });
+    try {
+      List<Info> video = await ApiService.fetchInfo({
+        'url': url,
+      });
+      setState(() {
+        downloadItems.addAll(video
+            .map((e) => DownloadWidget(
+                  title: e.title,
+                  url: e.sourceUrl,
+                  img: e.thumbnailUrl,
+                  videoId: e.videoId,
+                  progress: 0,
+                  onPressed: () {},
+                ))
+            .toList());
+        _isLoading = false;
+        _progressOfDown = 0;
+        _loadingProgress.clear();
+        _loadingStates.clear();
+      });
+
+      downloadItems.forEach((element) {
+        setState(() {
+          _loadingStates.add(false);
+          _loadingProgress.add(0);
+        });
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _progressOfDown = 0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Please enter a valid YouTube link or Try again later'),
+        behavior: SnackBarBehavior.floating,
+        elevation: 10.0,
+        backgroundColor: Colors.redAccent,
+        margin: EdgeInsets.only(bottom: 85, right: 30, left: 30),
+      ));
+    }
     return;
 
     /*if (isYoutubePlaylist(url)) {
