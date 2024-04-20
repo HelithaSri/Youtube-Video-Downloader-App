@@ -1,7 +1,6 @@
 const bool isUat = false;
-const String baseUrl = isUat
-    ? "http://192.168.254.105:5000"
-    : "https://youtube-video-downloader-cas4.onrender.com";
+const String baseUrl =
+    isUat ? "http://192.168.254.105:5000" : "https://yt-downloader.zeabur.app";
 
 const String getAllPhotos =
     "https://jsonplaceholder.typicode.com/photos?start=0&_limit=20";
