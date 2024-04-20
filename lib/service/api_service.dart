@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:yt_download_app/api/url_const.dart';
@@ -95,7 +94,7 @@ class ApiService {
     }
   }
 
-  Future<bool> downloadVideo(dynamic object, Function(int)? onProgress) async {
+  Future<void> downloadVideo(dynamic object, Function(int)? onProgress) async {
     final dio = Dio();
     final jsonData = json.encode(object);
 
@@ -174,7 +173,6 @@ class ApiService {
         );
 
         print('Download complete! Saved to: $filePath');
-        return true;
       } else {
         throw Exception(
             'Failed to download video (status code: ${response.statusCode})');

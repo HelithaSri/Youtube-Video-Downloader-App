@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:yt_download_app/component/download_item.dart';
 import 'package:yt_download_app/service/api_service.dart';
 
