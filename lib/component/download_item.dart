@@ -1,15 +1,23 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 
 class DownloadItem extends StatefulWidget {
   const DownloadItem({
     super.key,
     required this.title,
+    required this.isVideo,
+    required this.path,
     this.img =
         "https://www.stehle-int.com/EN/US/media/PIC_IMG_ALG_youtube-default-thumbnail_IN.png",
   });
 
   final String title;
+  final bool isVideo;
+  final String path;
   final String img;
 
   @override
@@ -54,7 +62,9 @@ class _DownloadItemState extends State<DownloadItem> {
                         //   },
                         // ),
                         child: CachedNetworkImage(
-                          imageUrl: widget.img,
+                          imageUrl: widget.isVideo
+                              ? widget.img
+                              : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlg5DILTDqz7ho1RZloh0v1e3GDRBo0TLLzL4rQe0szJ9uLgDNsopRmUaqYAuMYjAD6iM&usqp=CAU",
                           fit: BoxFit.cover,
                           // progressIndicatorBuilder:
                           //     (context, url, downloadProgress) => Container(
@@ -109,7 +119,9 @@ class _DownloadItemState extends State<DownloadItem> {
           Expanded(
             // flex: 1,
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                playVideoWithExternalPlayer(widget.path);
+              },
               icon: const Icon(Icons.play_arrow),
               color: Colors.white,
             ),
@@ -117,5 +129,13 @@ class _DownloadItemState extends State<DownloadItem> {
         ],
       ),
     );
+  }
+
+  Future<void> playVideoWithExternalPlayer(String filePath) async {
+    log("file path : " + filePath);
+    OpenFile.open(filePath).then((opened) {
+      // Handle success
+      print('File opened successfully');
+    });
   }
 }

@@ -1,10 +1,12 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:yt_download_app/component/download_item.dart';
 import 'package:yt_download_app/component/nav_bar.dart';
 import 'package:yt_download_app/model/photo.dart';
 import 'package:yt_download_app/service/api_service.dart';
+import 'package:yt_download_app/service/storag_service.dart';
 
 class DownloadHistoryScreen extends StatefulWidget {
   const DownloadHistoryScreen({super.key});
@@ -14,55 +16,28 @@ class DownloadHistoryScreen extends StatefulWidget {
 }
 
 class _DownloadHistoryScreenState extends State<DownloadHistoryScreen> {
-  final List<DownloadItem> downloadItems = [
-    // const DownloadItem(
-    //   title:
-    //       " Kassai (කැස්සයි) | Dinelka Muthuarachchi X Yasho X Lahiru De Costa [Official Music Video] (4K) ",
-    //   img:
-    //       "https://i.ytimg.com/vi/Bm_J2bNcPUQ/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLAxocYo5yemkVrQBHa6piRSiVeTjA",
-    // ),
-    // const DownloadItem(
-    //   title: "Poddak Saiko | පොඩ්‍ඩක් සයිකෝ | Gayya",
-    //   img:
-    //       "https://i.ytimg.com/vi/aNw7vbbimiY/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLArCNXZ0It1I2XvhrXaj2clNbz6dg",
-    // ),
-    // const DownloadItem(
-    //   title:
-    //       "Perambari |පෙරඹරී | Official Lyric Video| Pathum Dananjaya, Devaka Embuldeniya , Sarala Gunasekara",
-    // ),
-    // const DownloadItem(
-    //   title: "Mob Sick - Freaky Mobbig x Manasick [ Official Music Video ]",
-    //   img:
-    //       "https://i.ytimg.com/vi/1WKGrVJudts/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGEcgZShiMA8=&rs=AOn4CLDGcQE7T2YJN3-SrEdGZDHZMZn1Yw",
-    // ),
-    // const DownloadItem(
-    //   title:
-    //       " Kassai (කැස්සයි) | Dinelka Muthuarachchi X Yasho X Lahiru De Costa [Official Music Video] (4K) ",
-    //   img:
-    //       "https://i.ytimg.com/vi/Bm_J2bNcPUQ/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLAxocYo5yemkVrQBHa6piRSiVeTjA",
-    // ),
-    // const DownloadItem(
-    //   title: "Poddak Saiko | පොඩ්‍ඩක් සයිකෝ | Gayya",
-    //   img:
-    //       "https://i.ytimg.com/vi/aNw7vbbimiY/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLArCNXZ0It1I2XvhrXaj2clNbz6dg",
-    // ),
-    // const DownloadItem(
-    //   title:
-    //       "Perambari |පෙරඹරී | Official Lyric Video| Pathum Dananjaya, Devaka Embuldeniya , Sarala Gunasekara",
-    // ),
-    // const DownloadItem(
-    //   title: "Mob Sick - Freaky Mobbig x Manasick [ Official Music Video ]",
-    //   img:
-    //       "https://i.ytimg.com/vi/1WKGrVJudts/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-CYAC0AWKAgwIABABGEcgZShiMA8=&rs=AOn4CLDGcQE7T2YJN3-SrEdGZDHZMZn1Yw",
-    // ),
-  ];
+  List<DownloadItem> downloadItems = [];
 
   bool _isLoading = true;
+
+  Future<void> requestStoragePermission() async {
+    final status = await Permission.storage.request();
+    if (status.isGranted) {
+      // Access granted, proceed with storage operations
+    } else if (status.isDenied) {
+      // Permission denied
+      openAppSettings();
+    } else if (status.isPermanentlyDenied) {
+      // Permission permanently denied, open app settings
+      openAppSettings();
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    getAllPhotos();
+    getAllDownloadFiles();
+    requestStoragePermission();
   }
 
   @override
@@ -96,6 +71,8 @@ class _DownloadHistoryScreenState extends State<DownloadHistoryScreen> {
                     return DownloadItem(
                       title: downloadItem.title,
                       img: downloadItem.img,
+                      isVideo: downloadItem.isVideo,
+                      path: downloadItem.path,
                     );
                   },
                 ),
@@ -112,19 +89,14 @@ class _DownloadHistoryScreenState extends State<DownloadHistoryScreen> {
     );
   }
 
-  Future<void> getAllPhotos() async {
+  Future<void> getAllDownloadFiles() async {
     try {
       setState(() {
         _isLoading = true;
       });
-      final List<Photo> pic = await ApiService.fetchPhotsData();
+      List<DownloadItem> items = await StorageServices().retriveDownloads();
       setState(() {
-        downloadItems.addAll(pic
-            .map((e) => DownloadItem(
-                  title: e.title,
-                  img: e.thumbnailUrl,
-                ))
-            .toList());
+        downloadItems.addAll(items);
         _isLoading = false;
       });
     } catch (e) {

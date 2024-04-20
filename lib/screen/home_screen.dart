@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:lite_rolling_switch/lite_rolling_switch.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:yt_download_app/component/nav_bar.dart';
 import 'package:yt_download_app/component/yt_download.dart';
 import 'package:yt_download_app/model/info.dart';
@@ -20,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _isLoading = false;
   int _progressOfDown = 0;
+  bool isVideo = true;
   // bool _isItemLoading = false;
 
   final List<DownloadWidget> downloadItems = [];
@@ -27,10 +30,24 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<int> _loadingProgress = [];
   // late List<bool> _loadingStates;
 
+  Future<void> requestStoragePermission() async {
+    final status = await Permission.storage.request();
+    if (status.isGranted) {
+      // Access granted, proceed with storage operations
+    } else if (status.isDenied) {
+      // Permission denied
+      openAppSettings();
+    } else if (status.isPermanentlyDenied) {
+      // Permission permanently denied, open app settings
+      openAppSettings();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     // _loadingStates = List.filled(downloadItems.length, false);
+    requestStoragePermission();
   }
 
   @override
@@ -47,6 +64,35 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 customInputField(),
+                Transform.scale(
+                  scale: 0.9,
+                  child: LiteRollingSwitch(
+                    value: true,
+                    textOn: 'Video',
+                    textOff: 'Audio',
+                    colorOn: const Color.fromARGB(255, 23, 85, 152),
+                    colorOff: const Color.fromARGB(255, 47, 44, 44),
+                    textOnColor: const Color.fromARGB(255, 255, 255, 255),
+                    iconOn: Icons.video_collection,
+                    iconOff: Icons.audio_file,
+                    textSize: 17.0,
+                    onChanged: (bool state) {
+                      //Use it to manage the different states
+                      setState(() {
+                        isVideo = state;
+                      });
+                      print('Current State of SWITCH IS: $state');
+                    },
+                    onTap: () {},
+                    onDoubleTap: () {},
+                    onSwipe: () {},
+                  ),
+                ),
+                Visibility(
+                  visible: downloadItems.isEmpty && !_isLoading,
+                  child: Transform.scale(
+                      scale: 0.5, child: Image.asset("assets/images/WME5.gif")),
+                ),
                 Visibility(
                   visible: _isLoading,
                   child: const CircularProgressIndicator(),
@@ -119,10 +165,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       bool a = await ApiService().downloadVideo(
                         {
                           'videos': [downloadItem.videoId],
-                          'isVideo': true
+                          'isVideo': isVideo
                         },
                         (p0) {
-                          print(p0);
+                          log("Download Progress of ${downloadItem.title} : $p0");
                           setState(() {
                             _loadingProgress[index] = p0;
                           });
@@ -199,12 +245,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
             ),
             onPressed: () {
-              _handleButtonClick();
-              // downloadItems.clear();
-              // downloadItems.addAll(downloadItems2);
               setState(() {
                 _isLoading = true;
               });
+              _handleButtonClick();
+              // downloadItems.clear();
+              // downloadItems.addAll(downloadItems2);
             },
           ),
         ),
@@ -213,6 +259,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         textInputAction: TextInputAction.done,
         onSubmitted: (text) {
+          setState(() {
+            _isLoading = true;
+          });
           _handleButtonClick();
         },
       ),
@@ -224,18 +273,12 @@ class _HomeScreenState extends State<HomeScreen> {
     FocusScope.of(context).unfocus();
     if (url.isEmpty) {
       log("Please enter a YouTube link");
-      downloadItems.clear();
+      showSnakBar('Please enter a YouTube link');
       setState(() {
         _isLoading = false;
         _progressOfDown = 0;
+        downloadItems.clear();
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please enter a YouTube link'),
-        behavior: SnackBarBehavior.floating,
-        elevation: 10.0,
-        backgroundColor: Colors.redAccent,
-        margin: EdgeInsets.only(bottom: 85, right: 30, left: 30),
-      ));
       return;
     }
 
@@ -272,13 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
         _progressOfDown = 0;
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please enter a valid YouTube link or Try again later'),
-        behavior: SnackBarBehavior.floating,
-        elevation: 10.0,
-        backgroundColor: Colors.redAccent,
-        margin: EdgeInsets.only(bottom: 85, right: 30, left: 30),
-      ));
+      showSnakBar('Please enter a valid YouTube link or Try again later');
     }
     return;
 
@@ -302,6 +339,16 @@ class _HomeScreenState extends State<HomeScreen> {
           .toList());
     });
     return;*/
+  }
+
+  void showSnakBar(String titles) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(titles),
+      behavior: SnackBarBehavior.floating,
+      elevation: 10.0,
+      backgroundColor: Colors.redAccent,
+      margin: const EdgeInsets.only(bottom: 85, right: 30, left: 30),
+    ));
   }
 
   bool isYoutubePlaylist(String url) {
