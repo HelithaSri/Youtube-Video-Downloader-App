@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:yt_download_app/component/download_item.dart';
 import 'package:yt_download_app/component/nav_bar.dart';
-import 'package:yt_download_app/model/photo.dart';
-import 'package:yt_download_app/service/api_service.dart';
 import 'package:yt_download_app/service/storag_service.dart';
 
 class DownloadHistoryScreen extends StatefulWidget {

@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _loadingStates[index] =
                             true; // Set loading state for this widget
                       });
-                      bool a = await ApiService().downloadVideo(
+                      await ApiService().downloadVideo(
                         {
                           'videos': [downloadItem.videoId],
                           'isVideo': isVideo
